@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, Button, FlatList, PermissionsAndroid, Alert, StyleSheet
+  View, Text, Button, FlatList, PermissionsAndroid, Alert, StyleSheet,
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { NativeModules } from 'react-native';
@@ -97,11 +97,11 @@ const FinTrack: React.FC = () => {
   };
 
   const determineCategory = (message: string): string => {
-    if (/food|restaurant|dining|cafe/i.test(message)) return 'Food';
-    if (/shopping|mall|clothes|fashion/i.test(message)) return 'Shopping';
-    if (/bill|electricity|water|gas|internet/i.test(message)) return 'Bills';
-    if (/fuel|petrol|diesel|transport/i.test(message)) return 'Transport';
-    if (/salary|income|bonus|deposit/i.test(message)) return 'Income';
+    if (/food|restaurant|dining|cafe/i.test(message)) { return 'Food'; }
+    if (/shopping|mall|clothes|fashion/i.test(message)) { return 'Shopping'; }
+    if (/bill|electricity|water|gas|internet/i.test(message)) { return 'Bills'; }
+    if (/fuel|petrol|diesel|transport/i.test(message)) { return 'Transport'; }
+    if (/salary|income|bonus|deposit/i.test(message)) { return 'Income'; }
     return 'Other';
   };
 
