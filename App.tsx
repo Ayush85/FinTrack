@@ -5,6 +5,7 @@ import {
 import { NativeModules } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import LinearGradient from 'react-native-linear-gradient';
+// import axios from 'axios';
 
 const { SMSModule } = NativeModules;
 
@@ -58,7 +59,11 @@ const FinTrack: React.FC = () => {
     try {
       setRefreshing(true);
       const messages: { body: string; address: string; date: string }[] = await SMSModule.getMessages();
+      console.log('Fetched Messages:', messages);
       const parsedTransactions = parseTransactions(messages);
+      console.log('Parsed Transactions:', parsedTransactions);
+      // const aiTransactions = await parseTransactionsBatchAI(messages);
+      // console.log('AI Parsed Transactions:', aiTransactions);
       setFilteredTransactions(parsedTransactions);
       analyzeTransactions(parsedTransactions);
     } catch (error) {
@@ -68,67 +73,127 @@ const FinTrack: React.FC = () => {
     }
   };
 
+  // const GEMINI_API_KEY = 'AIzaSyAKKELpuYSyVuhA3Yt45RNx-ZqTVehwTWA';
+  // const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+  // // Helper: Call Gemini API
+  // async function callGeminiAPI(prompt: string): Promise<any> {
+  //   try {
+  //     const response = await axios.post(GEMINI_URL, {
+  //       contents: [
+  //         {
+  //           parts: [{ text: prompt + "\n\nRespond ONLY with a valid compact JSON array. No explanation, no markdown, no comments." }],
+  //         },
+  //       ],
+  //     }, {
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //     });
+
+  //     const candidates = response.data.candidates;
+  //     if (!candidates || candidates.length === 0) {
+  //       throw new Error('No candidates returned');
+  //     }
+
+  //     const text = candidates[0].content.parts[0].text.trim();
+
+  //     // 🛡️ Safe Parse: Remove any backticks, spaces
+  //     const cleanedText = text.replace(/^`+|`+$/g, '').trim();
+
+  //     // Parse
+  //     return JSON.parse(cleanedText);
+  //   } catch (error) {
+  //     console.error('Error calling Gemini API:', error);
+  //     return null;
+  //   }
+  // }
+
+  // // Helper: Split array into batches
+  // function splitIntoBatches<T>(array: T[], batchSize: number): T[][] {
+  //   const batches: T[][] = [];
+  //   for (let i = 0; i < array.length; i += batchSize) {
+  //     batches.push(array.slice(i, i + batchSize));
+  //   }
+  //   return batches;
+  // }
+
+  // // Main function: Parse transactions with batching
+  // async function parseTransactionsBatchAI(messages: { body: string; address: string; date?: string }[], batchSize = 10): Promise<Transaction[]> {
+  //   const batches = splitIntoBatches(messages, batchSize);
+  //   const allTransactions: Transaction[] = [];
+
+  //   for (const batch of batches) {
+  //     const prompt = `
+  //       Extract structured transaction info for these SMS messages.
+  //       Return a JSON array where each transaction object has:
+  //         - type: "Credit" or "Debit"
+  //         - amount: number
+  //         - category: short description
+
+  //       Messages:
+  //       ${batch.map((m, i) => `${i + 1}. ${m.body}`).join('\n')}
+  //     `;
+
+  //     const aiResponse = await callGeminiAPI(prompt);
+
+  //     if (aiResponse) {
+  //       const transactions = aiResponse.map((parsedTxn: any, index: number) => ({
+  //         type: parsedTxn.type,
+  //         amount: parsedTxn.amount,
+  //         category: parsedTxn.category,
+  //         message: batch[index].body,
+  //         address: batch[index].address,
+  //         date: batch[index].date ? new Date(Number(batch[index].date)) : undefined,
+  //       }));
+
+  //       allTransactions.push(...transactions);
+  //     }
+  //   }
+
+  //   return allTransactions;
+  // }
+
   const parseTransactions = (messages: { body: string; address: string; date?: string }[]): Transaction[] => {
     return messages.map((msg) => {
       const body = msg.body.toLowerCase();
-      
-      // Check for various transaction patterns
-      const esewaPattern = /wallet load .* of (\d+(?:,\d+)?(?:\.\d{2})?)/i;
-      const ntcPattern = /mobile topup .* of (\d+(?:,\d+)?(?:\.\d{2})?)/i;
-      const withdrawalPattern = /withdrawn (?:NPR\s*)?(\d+(?:,\d+)?(?:\.\d{2})?)/i;
-      const depositPattern = /deposited (?:NPR\s*)?(\d+(?:,\d+)?(?:\.\d{2})?)/i;
-      const generalAmountPattern = /(?:NPR|Rs)?\.?\s*(\d+(?:,\d+)?(?:\.\d{2})?)/i;
+      const debitMatch = /(debited|spent|paid|withdrawn|purchase|pos|transaction|atm|payment|transfer to)/i.test(body);
+      const creditMatch = /(credited|deposit|deposited|received|refunded|transfer from|salary|income|bonus)/i.test(body);
+      const walletLoadMatch = /(wallet load|esewa wallet load|esewa load|khalti load|khalti wallet load|load wallet)/i.test(body);
+      const mobileRechargeMatch = /(balance credited|recharge|data pack activated|offer|bonus|data)/i.test(body);
 
-      let amount = 0;
-      let type: 'Credit' | 'Debit' | null = null;
-
-      // Try to match different patterns
-      const esewaMatch = body.match(esewaPattern);
-      const ntcMatch = body.match(ntcPattern);
-      const withdrawalMatch = body.match(withdrawalPattern);
-      const depositMatch = body.match(depositPattern);
-      const generalMatch = body.match(generalAmountPattern);
-
-      if (esewaMatch || ntcMatch) {
-        amount = parseFloat((esewaMatch?.[1] || ntcMatch?.[1] || '0').replace(/,/g, ''));
-        type = 'Debit';
-      } else if (withdrawalMatch) {
-        amount = parseFloat(withdrawalMatch[1].replace(/,/g, ''));
-        type = 'Debit';
-      } else if (depositMatch) {
-        amount = parseFloat(depositMatch[1].replace(/,/g, ''));
-        type = 'Credit';
-      } else if (generalMatch && (body.includes('debited') || body.includes('withdrawn'))) {
-        amount = parseFloat(generalMatch[1].replace(/,/g, ''));
-        type = 'Debit';
-      } else if (generalMatch && (body.includes('credited') || body.includes('deposited'))) {
-        amount = parseFloat(generalMatch[1].replace(/,/g, ''));
-        type = 'Credit';
-      }
+      const amountMatch = body.match(/(?:npr|rs)\.?\s*([\d,]+(?:\.\d{1,2})?)/i);
 
       let date: Date | null = null;
       if (msg.date) {
         date = new Date(Number(msg.date));
       }
 
-      if (type && amount > 0) {
-        const category = determineCategory(body);
-        return { type, amount, category, message: msg.body, address: msg.address, date };
+      if (amountMatch) {
+        const amount = parseFloat(amountMatch[1].replace(/,/g, ''));
+        let type: 'Credit' | 'Debit' | 'Recharge' | null = null;
+        let category: string = 'Other';
+
+        if (walletLoadMatch) {
+          type = 'Debit';
+          category = 'Wallet Load';
+        } else if (mobileRechargeMatch) {
+          type = 'Recharge';
+          category = 'Mobile Recharge';
+        } else if (creditMatch) {
+          type = 'Credit';
+          category = 'Deposit';
+        } else if (debitMatch) {
+          type = 'Debit';
+          category = 'Withdrawal';
+        }
+
+        if (type) {
+          return { type, amount, category, message: msg.body, address: msg.address, date };
+        }
       }
       return null;
     }).filter((txn): txn is Transaction => txn !== null);
-  };
-
-  const determineCategory = (message: string): string => {
-    const lowerMessage = message.toLowerCase();
-    if (lowerMessage.includes('esewa') || lowerMessage.includes('wallet')) return 'Digital Wallet';
-    if (lowerMessage.includes('mobile') || lowerMessage.includes('ntc')) return 'Mobile Recharge';
-    if (/food|restaurant|dining|cafe/i.test(message)) return 'Food';
-    if (/shopping|mall|clothes|fashion/i.test(message)) return 'Shopping';
-    if (/bill|electricity|water|gas|internet/i.test(message)) return 'Bills';
-    if (/fuel|petrol|diesel|transport/i.test(message)) return 'Transport';
-    if (/salary|income|bonus|deposit/i.test(message)) return 'Income';
-    return 'Other';
   };
 
   const analyzeTransactions = (transactionsToAnalyze: Transaction[]) => {
