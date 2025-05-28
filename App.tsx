@@ -71,29 +71,58 @@ const FinTrack: React.FC = () => {
   const parseTransactions = (messages: { body: string; address: string; date?: string }[]): Transaction[] => {
     return messages.map((msg) => {
       const body = msg.body.toLowerCase();
-      const debitMatch = /debited|spent|paid|withdrawn|purchase|pos|transaction|atm|payment|transfer to/i.test(body);
-      const creditMatch = /credited|deposit|deposited|received|refunded|transfer from|salary|income|bonus/i.test(body);
-      const amountMatch = body.match(/(?:NPR|Rs)\.?\s*([\d,]+)/i);
+      
+      // Check for various transaction patterns
+      const esewaPattern = /wallet load .* of (\d+(?:,\d+)?(?:\.\d{2})?)/i;
+      const ntcPattern = /mobile topup .* of (\d+(?:,\d+)?(?:\.\d{2})?)/i;
+      const withdrawalPattern = /withdrawn (?:NPR\s*)?(\d+(?:,\d+)?(?:\.\d{2})?)/i;
+      const depositPattern = /deposited (?:NPR\s*)?(\d+(?:,\d+)?(?:\.\d{2})?)/i;
+      const generalAmountPattern = /(?:NPR|Rs)?\.?\s*(\d+(?:,\d+)?(?:\.\d{2})?)/i;
+
+      let amount = 0;
+      let type: 'Credit' | 'Debit' | null = null;
+
+      // Try to match different patterns
+      const esewaMatch = body.match(esewaPattern);
+      const ntcMatch = body.match(ntcPattern);
+      const withdrawalMatch = body.match(withdrawalPattern);
+      const depositMatch = body.match(depositPattern);
+      const generalMatch = body.match(generalAmountPattern);
+
+      if (esewaMatch || ntcMatch) {
+        amount = parseFloat((esewaMatch?.[1] || ntcMatch?.[1] || '0').replace(/,/g, ''));
+        type = 'Debit';
+      } else if (withdrawalMatch) {
+        amount = parseFloat(withdrawalMatch[1].replace(/,/g, ''));
+        type = 'Debit';
+      } else if (depositMatch) {
+        amount = parseFloat(depositMatch[1].replace(/,/g, ''));
+        type = 'Credit';
+      } else if (generalMatch && (body.includes('debited') || body.includes('withdrawn'))) {
+        amount = parseFloat(generalMatch[1].replace(/,/g, ''));
+        type = 'Debit';
+      } else if (generalMatch && (body.includes('credited') || body.includes('deposited'))) {
+        amount = parseFloat(generalMatch[1].replace(/,/g, ''));
+        type = 'Credit';
+      }
 
       let date: Date | null = null;
       if (msg.date) {
         date = new Date(Number(msg.date));
       }
 
-      if (amountMatch) {
-        const amount = parseFloat(amountMatch[1].replace(',', ''));
-        const type = creditMatch ? 'Credit' : debitMatch ? 'Debit' : null;
+      if (type && amount > 0) {
         const category = determineCategory(body);
-
-        if (type) {
-          return { type, amount, category, message: msg.body, address: msg.address, date };
-        }
+        return { type, amount, category, message: msg.body, address: msg.address, date };
       }
       return null;
     }).filter((txn): txn is Transaction => txn !== null);
   };
 
   const determineCategory = (message: string): string => {
+    const lowerMessage = message.toLowerCase();
+    if (lowerMessage.includes('esewa') || lowerMessage.includes('wallet')) return 'Digital Wallet';
+    if (lowerMessage.includes('mobile') || lowerMessage.includes('ntc')) return 'Mobile Recharge';
     if (/food|restaurant|dining|cafe/i.test(message)) return 'Food';
     if (/shopping|mall|clothes|fashion/i.test(message)) return 'Shopping';
     if (/bill|electricity|water|gas|internet/i.test(message)) return 'Bills';
@@ -174,7 +203,6 @@ const FinTrack: React.FC = () => {
     </GradientBackground>
   );
 };
-
 
 const Header = () => (
   <View style={styles.headerContainer}>
@@ -262,7 +290,7 @@ const StatisticsCard: React.FC<StatisticsCardProps> = ({ title, values, textStyl
 const GradientBackground: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <LinearGradient
-      colors={['#b6b6ff', '#e1affc']} // Converted to rgba
+      colors={['#b6b6ff', '#e1affc']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 0 }}
       style={{ flex: 1 }}
@@ -271,7 +299,6 @@ const GradientBackground: React.FC<{ children: React.ReactNode }> = ({ children 
     </LinearGradient>
   );
 };
-
 
 const styles = StyleSheet.create({
   scrollView: { flex: 1 },
@@ -299,14 +326,10 @@ const styles = StyleSheet.create({
   date: { fontSize: 12, color: '#999' },
   valueTextDay: { fontSize: 56, fontWeight: "bold", color: "#000", marginRight: 8 },
   arrowIconDay: { alignSelf: "flex-end", marginBottom: 10 },
-
   valueTextWeek: { fontSize: 48, fontWeight: "bold", color: "#000", marginRight: 6 },
   arrowIconWeek: { alignSelf: "flex-end", marginBottom: 6 },
-
   valueTextMonth: { fontSize: 40, fontWeight: "bold", color: "#000", marginRight: 4 },
   arrowIconMonth: { alignSelf: "flex-end", marginBottom: 4 },
 });
-
-
 
 export default FinTrack;
