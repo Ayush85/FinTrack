@@ -73,3 +73,18 @@ yarn-error.log
 !.yarn/sdks
 !.yarn/versions
 .env
+
+# Editor files
+*.swp
+*.swo
+*~
+
+# IDE folders
+.vscode/
+.idea/
+
+# Build artifacts
+.bundle/
+
+# Logs
+*.log
