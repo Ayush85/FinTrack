@@ -51,59 +51,55 @@ export class TransactionService {
     return messages
       .map(msg => {
         const body = msg.body;
-        // const lowerBody = body.toLowerCase();
 
-        // Detect transaction type
-        const debitMatch =
-          /(debited|spent|paid|withdrawn|purchase|pos|transaction|atm|payment|transfer to|load wallet|wallet load)/i.test(
-            body,
-          );
-        const creditMatch =
-          /(credited|deposit|deposited|received|refunded|transfer from|salary|income|bonus|payment received)/i.test(
-            body,
-          );
-        const rechargeMatch =
-          /(recharge|balance credited|data pack|topup|data|voice pack|offer)/i.test(
-            body,
-          );
-
-        // Extract amount
+        // Extract amount first
         const amountMatch =
           body.match(/(?:npr|rs|usd|cad|eur)\.?\s*([\d,]+(?:\.\d{1,2})?)/i) ||
           body.match(/amount\s+([\d,]+(?:\.\d{1,2})?)/i);
 
         if (!amountMatch) {
-          return null;
+          return null; // No amount, likely not a transaction
         }
 
         const amount = parseFloat(amountMatch[1].replace(/,/g, ''));
         const date: Date | null = msg.date ? new Date(Number(msg.date)) : null;
-
-        // Extract remarks (optional)
         const remarksMatch = body.match(/remarks?:?\s*(.+)/i);
         const remarks = remarksMatch ? remarksMatch[1].trim() : null;
 
+        // Transaction keywords
+        const debitKeywords =
+          /(debited|spent|paid|withdrawn|purchase|pos|transaction|atm|transfer to|load wallet|wallet load)/i;
+        const creditKeywords =
+          /(credited|deposit|deposited|received|refunded|transfer from|salary|income|bonus|payment received)/i;
+        const rechargeKeywords =
+          /(recharge|balance credited|data pack|topup|data|voice pack)/i;
+
+        // Exclusion patterns (promotions/offers)
+        const excludePatterns =
+          /(offer|free|promotion|discount|cashback|reward|lottery|win|prize|gift|voucher|deal|sale)/i;
+        if (excludePatterns.test(body)) {
+          return null;
+        }
+
+        // Check type
         let type: string | null = null;
         let category: string = TRANSACTION_CATEGORIES.OTHER;
 
-        if (creditMatch) {
+        if (creditKeywords.test(body)) {
           type = TRANSACTION_TYPES.CREDIT;
           category = TRANSACTION_CATEGORIES.DEPOSIT;
-        } else if (debitMatch) {
+        } else if (debitKeywords.test(body)) {
           type = TRANSACTION_TYPES.DEBIT;
-          // special case for wallet loads
           if (/esewa|khalti|imepay|wallet/i.test(body)) {
             category = TRANSACTION_CATEGORIES.WALLET_LOAD;
           } else {
             category = TRANSACTION_CATEGORIES.WITHDRAWAL;
           }
-        } else if (rechargeMatch) {
+        } else if (rechargeKeywords.test(body)) {
           type = TRANSACTION_TYPES.RECHARGE;
           category = TRANSACTION_CATEGORIES.MOBILE_RECHARGE;
-        }
-
-        if (!type) {
-          return null;
+        } else {
+          return null; // no valid transaction type
         }
 
         return {
