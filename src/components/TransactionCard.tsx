@@ -24,7 +24,8 @@ export const TransactionCard: React.FC<TransactionCardProps> = ({ transaction })
     };
 
     return (
-        <TouchableOpacity 
+        <TouchableOpacity
+         activeOpacity={0.8}
             onPress={() => setIsExpanded(!isExpanded)}
             style={[styles.transactionCard, isExpanded && styles.expandedCard]}
             accessibilityRole="button"
@@ -109,16 +110,16 @@ const styles = StyleSheet.create({
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.05,
-        shadowRadius: 8,
+        shadowRadius: 6,
         elevation: 2,
         borderWidth: 1,
         borderColor: 'rgba(100, 116, 139, 0.1)',
     },
     expandedCard: {
-        padding: 24,
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-        elevation: 4,
+        padding: 20,
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 3,
     },
     rowBetween: {
         flexDirection: 'row',
@@ -139,7 +140,7 @@ const styles = StyleSheet.create({
         letterSpacing: 0.5,
     },
     expandedAmount: {
-        fontSize: 22,
+        fontSize: 20,
     },
     type: {
         fontSize: 13,
@@ -200,7 +201,7 @@ const styles = StyleSheet.create({
         marginTop: 8,
     },
     expandIcon: {
-        opacity: 0.6,
+        opacity: 0.7,
     },
     messageRow: {
         alignItems: 'flex-start',

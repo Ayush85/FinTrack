@@ -17,9 +17,17 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
     activeFilter,
 }) => {
     const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
-    const selectedPeriod = activeFilter === 'All' ? 'Month' : activeFilter;
+    const [currentPeriod, setCurrentPeriod] = React.useState(activeFilter);
+    
+    React.useEffect(() => {
+        setCurrentPeriod(activeFilter);
+    }, [activeFilter]);
+
+    const selectedPeriod = currentPeriod === 'All' ? 'Month' : currentPeriod;
+    const analysisKey = selectedPeriod.toLowerCase() as keyof ExpenseAnalysis;
 
     const handlePeriodSelect = (period: DateFilter) => {
+        setCurrentPeriod(period);
         onFilterChange(period);
         setIsDropdownOpen(false);
     };
@@ -67,18 +75,19 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
                     title={selectedPeriod}
                     values={[
                         {
-                            amount: analysis[selectedPeriod.toLowerCase() as keyof ExpenseAnalysis].spent.toFixed(2),
-                            iconName: 'arrow-up',
+                            amount: analysis[analysisKey].spent.toFixed(2),
+                            iconName: 'arrow-down',
                             iconColor: COLORS.TRANSACTION.DEBIT,
                         },
                         {
-                            amount: analysis[selectedPeriod.toLowerCase() as keyof ExpenseAnalysis].credited.toFixed(2),
-                            iconName: 'arrow-down',
+                            amount: analysis[analysisKey].credited.toFixed(2),
+                            iconName: 'arrow-up',
                             iconColor: COLORS.TRANSACTION.CREDIT,
                         },
                     ]}
                     textStyle={getTextStyle(selectedPeriod)}
                     iconStyle={getIconStyle(selectedPeriod)}
+                    isExpanded={isDropdownOpen}
                 />
             </View>
         </View>
