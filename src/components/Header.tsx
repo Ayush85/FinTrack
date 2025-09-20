@@ -1,29 +1,20 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Image, StyleSheet } from 'react-native';
 import { HEADER_IMAGES, COLORS } from '../constants';
+import { Logo } from './ui/Logo';
 
 export const Header: React.FC = () => (
     <View style={styles.headerContainer}>
-        <View style={styles.headerContent}>
-            <View style={styles.headerInfo}>
-                <Image
-                    source={{ uri: HEADER_IMAGES.CURRENCY_ICON }}
-                    resizeMode="stretch"
-                    style={styles.headerIcon}
-                />
-                <Text style={styles.headerText}>NPR</Text>
-            </View>
+        <View style={styles.headerLeft}>
+            <Logo size="large" />
+        </View>
+        <View style={styles.headerRight}>
             <Image
                 source={{ uri: HEADER_IMAGES.PROFILE_ICON }}
-                resizeMode="stretch"
-                style={styles.headerImage}
+                style={styles.profile}
+                accessibilityLabel="Profile"
             />
         </View>
-        <Image
-            source={{ uri: HEADER_IMAGES.LOGO }}
-            resizeMode="stretch"
-            style={styles.headerLogo}
-        />
     </View>
 );
 
@@ -31,41 +22,36 @@ const styles = StyleSheet.create({
     headerContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-end',
-        paddingTop: 64,
+        alignItems: 'center',
+        paddingTop: 48,
         paddingBottom: 24,
         paddingHorizontal: 24,
-    },
-    headerContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
         backgroundColor: COLORS.BACKGROUND.HEADER,
-        borderRadius: 20,
-        padding: 12,
     },
-    headerInfo: {
+    headerLeft: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingRight: 3,
+    },
+    logo: {
+        width: 40,
+        height: 40,
         marginRight: 12,
+        borderRadius: 12,
     },
-    headerIcon: {
-        width: 24,
-        height: 24,
-        marginRight: 8,
-    },
-    headerText: {
+    title: {
+        fontSize: 24,
+        fontWeight: '700',
         color: COLORS.TEXT.PRIMARY,
-        fontSize: 18,
-        fontWeight: 'bold',
+        letterSpacing: 1,
     },
-    headerImage: {
-        borderRadius: 20,
-        width: 20,
-        height: 20,
+    headerRight: {
+        flexDirection: 'row',
+        alignItems: 'center',
     },
-    headerLogo: {
-        width: 48,
-        height: 48,
+    profile: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        backgroundColor: COLORS.BACKGROUND.CARD,
     },
 });

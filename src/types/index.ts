@@ -1,4 +1,5 @@
 export interface Transaction {
+  id: string;
   type: 'Credit' | 'Debit' | 'Recharge';
   amount: number;
   category:
@@ -10,6 +11,9 @@ export interface Transaction {
   message: string;
   address: string;
   date: Date | null;
+  bank?: string;
+  balance?: number;
+  description?: string;
 }
 
 export interface ExpenseAnalysis {

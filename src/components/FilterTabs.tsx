@@ -21,6 +21,9 @@ export const FilterTabs: React.FC<FilterTabsProps> = ({
                     activeFilter === type && styles.activeTypeTab,
                 ]}
                 onPress={() => onFilterChange(type)}
+                accessibilityRole="button"
+                accessibilityLabel={`Filter by ${type}`}
+                activeOpacity={0.7}
             >
                 <Text
                     style={[
@@ -38,24 +41,29 @@ export const FilterTabs: React.FC<FilterTabsProps> = ({
 const styles = StyleSheet.create({
     typeTabs: {
         flexDirection: 'row',
-        justifyContent: 'center',
-        marginVertical: 10,
+        marginVertical: 12,
+        marginLeft: 16,
     },
     typeTab: {
         paddingVertical: 8,
         paddingHorizontal: 16,
-        marginHorizontal: 5,
-        borderRadius: 20,
-        backgroundColor: COLORS.BACKGROUND.TAB,
+        marginRight: 8,
+        borderRadius: 8,
+        backgroundColor: COLORS.BACKGROUND.MAIN,
+        borderWidth: 1,
+        borderColor: 'rgba(100, 116, 139, 0.1)',
     },
     activeTypeTab: {
-        backgroundColor: COLORS.BACKGROUND.ACTIVE_TAB,
+        backgroundColor: COLORS.ACCENT,
+        borderColor: COLORS.ACCENT,
     },
     typeTabText: {
         color: COLORS.TEXT.SECONDARY,
-        fontWeight: '600',
+        fontWeight: '500',
+        fontSize: 14,
     },
     activeTypeTabText: {
         color: COLORS.TEXT.WHITE,
+        fontWeight: '600',
     },
 });

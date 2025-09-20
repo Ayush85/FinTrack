@@ -11,7 +11,7 @@ export const GradientBackground: React.FC<GradientBackgroundProps> = ({ children
     <LinearGradient
         colors={[COLORS.GRADIENT.START, COLORS.GRADIENT.END]}
         start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
+        end={{ x: 1, y: 1 }}
         style={styles.container}
     >
         {children}
@@ -21,5 +21,6 @@ export const GradientBackground: React.FC<GradientBackgroundProps> = ({ children
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        backgroundColor: COLORS.GRADIENT.START,
     },
 });

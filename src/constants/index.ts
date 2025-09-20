@@ -31,25 +31,27 @@ export const HEADER_IMAGES = {
 
 export const COLORS = {
   GRADIENT: {
-    START: '#b6b6ff',
-    END: '#e1affc',
+    START: '#F5F7FA',  // Light gray background
+    END: '#FFFFFF',    // White gradient end
   },
   TRANSACTION: {
-    DEBIT: '#e53935',
-    CREDIT: '#43a047',
+    DEBIT: '#B91C1C',  // Deep red for expenses
+    CREDIT: '#059669', // Teal for income
   },
   BACKGROUND: {
-    CARD: 'rgba(255, 255, 255, 0.9)',
-    HEADER: 'rgba(255, 255, 255, 0.3)',
-    ACTIVE_FILTER: 'rgba(140, 78, 226, 0.12)',
-    TAB: 'rgba(221, 221, 221, 0.8)',
-    ACTIVE_TAB: 'rgba(98, 0, 238, 0.8)',
+    MAIN: '#F5F7FA',    // Light gray main background
+    CARD: '#FFFFFF',    // White card background
+    HEADER: '#FFFFFF',  // White header
+    ACTIVE_FILTER: 'rgba(14, 165, 233, 0.15)', // Sky blue with opacity
+    TAB: 'rgba(255, 255, 255, 0.9)',
+    ACTIVE_TAB: '#0EA5E9', // Sky-500
   },
   TEXT: {
-    PRIMARY: '#000',
-    SECONDARY: '#333',
-    DISABLED: '#666',
-    LIGHT: '#888',
-    WHITE: '#fff',
+    PRIMARY: '#1E293B',   // Slate-800
+    SECONDARY: '#64748B', // Slate-500
+    LIGHT: '#94A3B8',    // Slate-400
+    WHITE: '#FFFFFF',
   },
+  ACCENT: '#0EA5E9',     // Sky-500
+  HIGHLIGHT: '#FACC15',  // Yellow-400
 } as const;

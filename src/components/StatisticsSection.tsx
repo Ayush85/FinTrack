@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, StyleSheet, Text } from 'react-native';
 import { StatisticsCard } from './StatisticsCard';
 import { ExpenseAnalysis, DateFilter } from '../types';
 import { DATE_FILTERS, COLORS } from '../constants';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 interface StatisticsSectionProps {
     analysis: ExpenseAnalysis;
@@ -14,37 +15,75 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
     analysis,
     onFilterChange,
     activeFilter,
-}) => (
-    <View style={styles.statisticsContainer}>
-        {DATE_FILTERS.filter(filter => filter !== 'All').map((period) => (
-            <TouchableOpacity
-                key={period}
-                onPress={() => onFilterChange(period as DateFilter)}
-                style={[
-                    activeFilter === period && styles.activeStatisticsCard,
-                ]}
-            >
+}) => {
+    const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+    const selectedPeriod = activeFilter === 'All' ? 'Month' : activeFilter;
+
+    const handlePeriodSelect = (period: DateFilter) => {
+        onFilterChange(period);
+        setIsDropdownOpen(false);
+    };
+
+    return (
+        <View style={styles.statisticsContainer}>
+            <View style={styles.headerRow}>
+                <TouchableOpacity
+                    onPress={() => setIsDropdownOpen(!isDropdownOpen)}
+                    style={styles.periodSelector}
+                >
+                    <Text style={styles.periodText}>{selectedPeriod}</Text>
+                    <Icon
+                        name={isDropdownOpen ? 'chevron-up' : 'chevron-down'}
+                        size={12}
+                        color={COLORS.TEXT.SECONDARY}
+                        style={styles.chevronIcon}
+                    />
+                </TouchableOpacity>
+                {isDropdownOpen && (
+                    <View style={styles.dropdown}>
+                        {DATE_FILTERS.map(period => (
+                            <TouchableOpacity
+                                key={period}
+                                style={[
+                                    styles.dropdownItem,
+                                    selectedPeriod === period && styles.selectedDropdownItem,
+                                ]}
+                                onPress={() => handlePeriodSelect(period as DateFilter)}
+                            >
+                                <Text style={[
+                                    styles.dropdownText,
+                                    selectedPeriod === period && styles.selectedDropdownText,
+                                ]}>
+                                    {period}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                )}
+            </View>
+
+            <View>
                 <StatisticsCard
-                    title={period}
+                    title={selectedPeriod}
                     values={[
                         {
-                            amount: analysis[period.toLowerCase() as keyof ExpenseAnalysis].spent.toFixed(2),
-                            iconName: 'caret-up',
-                            iconColor: 'red',
+                            amount: analysis[selectedPeriod.toLowerCase() as keyof ExpenseAnalysis].spent.toFixed(2),
+                            iconName: 'arrow-up',
+                            iconColor: COLORS.TRANSACTION.DEBIT,
                         },
                         {
-                            amount: analysis[period.toLowerCase() as keyof ExpenseAnalysis].credited.toFixed(2),
-                            iconName: 'caret-down',
-                            iconColor: 'green',
+                            amount: analysis[selectedPeriod.toLowerCase() as keyof ExpenseAnalysis].credited.toFixed(2),
+                            iconName: 'arrow-down',
+                            iconColor: COLORS.TRANSACTION.CREDIT,
                         },
                     ]}
-                    textStyle={getTextStyle(period)}
-                    iconStyle={getIconStyle(period)}
+                    textStyle={getTextStyle(selectedPeriod)}
+                    iconStyle={getIconStyle(selectedPeriod)}
                 />
-            </TouchableOpacity>
-        ))}
-    </View>
-);
+            </View>
+        </View>
+    );
+};
 
 const getTextStyle = (period: string) => {
     switch (period) {
@@ -74,41 +113,101 @@ const getIconStyle = (period: string) => {
 
 const styles = StyleSheet.create({
     statisticsContainer: {
-        paddingVertical: 24,
-        marginBottom: 10,
+        backgroundColor: COLORS.BACKGROUND.CARD,
+        // borderRadius: 16,
+        padding: 18,
+        marginBottom: 12,
+        // shadowColor: '#000',
+        // shadowOffset: { width: 0, height: 4 },
+        // shadowOpacity: 0.08,
+        // shadowRadius: 8,
+        // elevation: 3,
+        // width: '100%',
+        borderWidth: 1,
+        borderColor: 'rgba(100, 116, 139, 0.1)',
     },
-    activeStatisticsCard: {
-        borderRadius: 10,
-        backgroundColor: COLORS.BACKGROUND.ACTIVE_FILTER,
+    headerRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    periodSelector: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: COLORS.BACKGROUND.MAIN,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 8,
+    },
+    periodText: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: COLORS.TEXT.PRIMARY,
+        marginRight: 4,
+    },
+    chevronIcon: {
+        opacity: 0.6,
+    },
+    dropdown: {
+        position: 'absolute',
+        top: '100%',
+        left: 0,
+        backgroundColor: COLORS.BACKGROUND.CARD,
+        borderRadius: 8,
+        padding: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 4,
+        zIndex: 1000,
+        minWidth: 120,
+        borderWidth: 1,
+        borderColor: 'rgba(100, 116, 139, 0.1)',
+    },
+    dropdownItem: {
+        paddingVertical: 8,
+        paddingHorizontal: 12,
+        borderRadius: 6,
+    },
+    selectedDropdownItem: {
+        backgroundColor: 'rgba(100, 116, 139, 0.1)',
+    },
+    dropdownText: {
+        fontSize: 14,
+        color: COLORS.TEXT.PRIMARY,
+    },
+    selectedDropdownText: {
+        fontWeight: '600',
     },
     valueTextDay: {
-        fontSize: 56,
+        fontSize: 28,
         fontWeight: 'bold',
         color: COLORS.TEXT.PRIMARY,
         marginRight: 8,
     },
     arrowIconDay: {
         alignSelf: 'flex-end',
-        marginBottom: 10,
+        marginBottom: 8,
     },
     valueTextWeek: {
-        fontSize: 48,
+        fontSize: 28,
         fontWeight: 'bold',
         color: COLORS.TEXT.PRIMARY,
-        marginRight: 6,
+        marginRight: 8,
     },
     arrowIconWeek: {
         alignSelf: 'flex-end',
-        marginBottom: 6,
+        marginBottom: 8,
     },
     valueTextMonth: {
-        fontSize: 40,
+        fontSize: 28,
         fontWeight: 'bold',
         color: COLORS.TEXT.PRIMARY,
-        marginRight: 4,
+        marginRight: 8,
     },
     arrowIconMonth: {
         alignSelf: 'flex-end',
-        marginBottom: 4,
+        marginBottom: 8,
     },
 });
