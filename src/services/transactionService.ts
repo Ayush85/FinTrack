@@ -8,10 +8,6 @@ const {SMSModule} = NativeModules;
  * Service class for handling SMS permissions and transaction parsing
  */
 export class TransactionService {
-  /**
-   * Requests SMS permission from the user
-   * @returns Promise<boolean> - True if permission granted, false otherwise
-   */
   static async requestSMSPermission(): Promise<boolean> {
     try {
       const granted = await PermissionsAndroid.request(
@@ -38,10 +34,6 @@ export class TransactionService {
     }
   }
 
-  /**
-   * Fetches SMS messages from the device
-   * @returns Promise<SMSMessage[]> - Array of SMS messages
-   */
   static async fetchSMSMessages(): Promise<SMSMessage[]> {
     try {
       const messages: SMSMessage[] = await SMSModule.getMessages();
@@ -54,64 +46,60 @@ export class TransactionService {
 
   /**
    * Parses SMS messages to extract transaction information
-   * @param messages - Array of SMS messages to parse
-   * @returns Transaction[] - Array of parsed transactions
    */
   static parseTransactions(messages: SMSMessage[]): Transaction[] {
     return messages
       .map(msg => {
-        const body = msg.body.toLowerCase();
+        const body = msg.body;
+        // const lowerBody = body.toLowerCase();
 
-        // Pattern matching for different transaction types
+        // Detect transaction type
         const debitMatch =
-          /(debited|spent|paid|withdrawn|purchase|pos|transaction|atm|payment|transfer to)/i.test(
+          /(debited|spent|paid|withdrawn|purchase|pos|transaction|atm|payment|transfer to|load wallet|wallet load)/i.test(
             body,
           );
         const creditMatch =
-          /(credited|deposit|deposited|received|refunded|transfer from|salary|income|bonus)/i.test(
+          /(credited|deposit|deposited|received|refunded|transfer from|salary|income|bonus|payment received)/i.test(
             body,
           );
-        const walletLoadMatch =
-          /(wallet load|esewa wallet load|khalti wallet load|load wallet)/i.test(
-            body,
-          );
-        const mobileRechargeMatch =
-          /(balance credited|recharge|data pack activated|offer|bonus|data)/i.test(
+        const rechargeMatch =
+          /(recharge|balance credited|data pack|topup|data|voice pack|offer)/i.test(
             body,
           );
 
-        // Extract amount from message
-        const amountMatch = body.match(
-          /(?:npr|rs)\.?\s*([\d,]+(?:\.\d{1,2})?)/i,
-        );
-        const date: Date | null = msg.date ? new Date(Number(msg.date)) : null;
+        // Extract amount
+        const amountMatch =
+          body.match(/(?:npr|rs|usd|cad|eur)\.?\s*([\d,]+(?:\.\d{1,2})?)/i) ||
+          body.match(/amount\s+([\d,]+(?:\.\d{1,2})?)/i);
 
         if (!amountMatch) {
           return null;
         }
 
         const amount = parseFloat(amountMatch[1].replace(/,/g, ''));
-        let type: 'Credit' | 'Debit' | 'Recharge' | null = null;
-        let category:
-          | 'Wallet Load'
-          | 'Mobile Recharge'
-          | 'Deposit'
-          | 'Withdrawal'
-          | 'Other' = TRANSACTION_CATEGORIES.OTHER;
+        const date: Date | null = msg.date ? new Date(Number(msg.date)) : null;
 
-        // Determine transaction type and category
-        if (walletLoadMatch) {
-          type = TRANSACTION_TYPES.DEBIT;
-          category = TRANSACTION_CATEGORIES.WALLET_LOAD;
-        } else if (mobileRechargeMatch) {
-          type = TRANSACTION_TYPES.RECHARGE;
-          category = TRANSACTION_CATEGORIES.MOBILE_RECHARGE;
-        } else if (creditMatch) {
+        // Extract remarks (optional)
+        const remarksMatch = body.match(/remarks?:?\s*(.+)/i);
+        const remarks = remarksMatch ? remarksMatch[1].trim() : null;
+
+        let type: string | null = null;
+        let category: string = TRANSACTION_CATEGORIES.OTHER;
+
+        if (creditMatch) {
           type = TRANSACTION_TYPES.CREDIT;
           category = TRANSACTION_CATEGORIES.DEPOSIT;
         } else if (debitMatch) {
           type = TRANSACTION_TYPES.DEBIT;
-          category = TRANSACTION_CATEGORIES.WITHDRAWAL;
+          // special case for wallet loads
+          if (/esewa|khalti|imepay|wallet/i.test(body)) {
+            category = TRANSACTION_CATEGORIES.WALLET_LOAD;
+          } else {
+            category = TRANSACTION_CATEGORIES.WITHDRAWAL;
+          }
+        } else if (rechargeMatch) {
+          type = TRANSACTION_TYPES.RECHARGE;
+          category = TRANSACTION_CATEGORIES.MOBILE_RECHARGE;
         }
 
         if (!type) {
@@ -125,23 +113,22 @@ export class TransactionService {
           message: msg.body,
           address: msg.address,
           date,
+          remarks,
         };
       })
       .filter((txn): txn is Transaction => txn !== null);
   }
 
-  /**
-   * Main method to fetch and parse SMS transactions
-   * @returns Promise<Transaction[]> - Array of parsed transactions
-   */
   static async getTransactions(): Promise<Transaction[]> {
     const hasPermission = await this.requestSMSPermission();
-
     if (!hasPermission) {
       throw new Error('SMS permission denied');
     }
 
     const messages = await this.fetchSMSMessages();
-    return this.parseTransactions(messages);
+    console.log('Fetched SMS Messages:', messages);
+    const transactions = this.parseTransactions(messages);
+    console.log('Parsed Transactions:', transactions);
+    return transactions;
   }
 }

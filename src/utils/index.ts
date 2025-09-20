@@ -112,5 +112,5 @@ export const isDateInFilterRange = (
  * @returns Formatted currency string
  */
 export const formatCurrency = (amount: number): string => {
-  return `Rs. ${amount.toFixed(2)}`;
+  return `NPR ${amount.toFixed(2)}`;
 };

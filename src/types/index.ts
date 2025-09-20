@@ -10,6 +10,7 @@ export interface Transaction {
   message: string;
   address: string;
   date: Date | null;
+  remarks: string | null;
 }
 
 export interface ExpenseAnalysis {
