@@ -96,6 +96,7 @@ const FinTrack: React.FC = () => {
         );
     }
 
+
     return (
         <GradientBackground>
             <SafeAreaView style={globalStyles.safeArea}>

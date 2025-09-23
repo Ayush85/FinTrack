@@ -18,13 +18,9 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
 }) => {
     const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
     const [currentPeriod, setCurrentPeriod] = React.useState(activeFilter);
-    
     React.useEffect(() => {
         setCurrentPeriod(activeFilter);
     }, [activeFilter]);
-
-    const selectedPeriod = currentPeriod === 'All' ? 'Month' : currentPeriod;
-    const analysisKey = selectedPeriod.toLowerCase() as keyof ExpenseAnalysis;
 
     const handlePeriodSelect = (period: DateFilter) => {
         setCurrentPeriod(period);
@@ -39,7 +35,7 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
                     onPress={() => setIsDropdownOpen(!isDropdownOpen)}
                     style={styles.periodSelector}
                 >
-                    <Text style={styles.periodText}>{selectedPeriod}</Text>
+                    <Text style={styles.periodText}>{currentPeriod}</Text>
                     <Icon
                         name={isDropdownOpen ? 'chevron-up' : 'chevron-down'}
                         size={12}
@@ -54,13 +50,13 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
                                 key={period}
                                 style={[
                                     styles.dropdownItem,
-                                    selectedPeriod === period && styles.selectedDropdownItem,
+                                    currentPeriod === period && styles.selectedDropdownItem,
                                 ]}
                                 onPress={() => handlePeriodSelect(period as DateFilter)}
                             >
                                 <Text style={[
                                     styles.dropdownText,
-                                    selectedPeriod === period && styles.selectedDropdownText,
+                                    currentPeriod === period && styles.selectedDropdownText,
                                 ]}>
                                     {period}
                                 </Text>
@@ -71,24 +67,87 @@ export const StatisticsSection: React.FC<StatisticsSectionProps> = ({
             </View>
 
             <View>
-                <StatisticsCard
-                    title={selectedPeriod}
-                    values={[
-                        {
-                            amount: analysis[analysisKey].spent.toFixed(2),
-                            iconName: 'arrow-down',
-                            iconColor: COLORS.TRANSACTION.DEBIT,
-                        },
-                        {
-                            amount: analysis[analysisKey].credited.toFixed(2),
-                            iconName: 'arrow-up',
-                            iconColor: COLORS.TRANSACTION.CREDIT,
-                        },
-                    ]}
-                    textStyle={getTextStyle(selectedPeriod)}
-                    iconStyle={getIconStyle(selectedPeriod)}
-                    isExpanded={isDropdownOpen}
-                />
+                {currentPeriod === 'All' ? (
+                    // Show all period statistics
+                    <>
+                        <StatisticsCard
+                            title="Today"
+                            values={[
+                                {
+                                    amount: analysis.today.spent.toFixed(2),
+                                    iconName: 'arrow-down',
+                                    iconColor: COLORS.TRANSACTION.DEBIT,
+                                },
+                                {
+                                    amount: analysis.today.credited.toFixed(2),
+                                    iconName: 'arrow-up',
+                                    iconColor: COLORS.TRANSACTION.CREDIT,
+                                },
+                            ]}
+                            textStyle={getTextStyle('Today')}
+                            iconStyle={getIconStyle('Today')}
+                            isExpanded={false}
+                        />
+                        <View style={styles.cardSpacing} />
+                        <StatisticsCard
+                            title="Week"
+                            values={[
+                                {
+                                    amount: analysis.week.spent.toFixed(2),
+                                    iconName: 'arrow-down',
+                                    iconColor: COLORS.TRANSACTION.DEBIT,
+                                },
+                                {
+                                    amount: analysis.week.credited.toFixed(2),
+                                    iconName: 'arrow-up',
+                                    iconColor: COLORS.TRANSACTION.CREDIT,
+                                },
+                            ]}
+                            textStyle={getTextStyle('Week')}
+                            iconStyle={getIconStyle('Week')}
+                            isExpanded={false}
+                        />
+                        <View style={styles.cardSpacing} />
+                        <StatisticsCard
+                            title="Month"
+                            values={[
+                                {
+                                    amount: analysis.month.spent.toFixed(2),
+                                    iconName: 'arrow-down',
+                                    iconColor: COLORS.TRANSACTION.DEBIT,
+                                },
+                                {
+                                    amount: analysis.month.credited.toFixed(2),
+                                    iconName: 'arrow-up',
+                                    iconColor: COLORS.TRANSACTION.CREDIT,
+                                },
+                            ]}
+                            textStyle={getTextStyle('Month')}
+                            iconStyle={getIconStyle('Month')}
+                            isExpanded={false}
+                        />
+                    </>
+                ) : (
+                    // Show single period statistics
+                    <StatisticsCard
+                        title={currentPeriod}
+                        values={[
+                            {
+                                amount: analysis[currentPeriod.toLowerCase() as keyof ExpenseAnalysis].spent.toFixed(2),
+                                iconName: 'arrow-down',
+                                iconColor: COLORS.TRANSACTION.DEBIT,
+                            },
+                            {
+                                amount: analysis[currentPeriod.toLowerCase() as keyof ExpenseAnalysis].credited.toFixed(2),
+                                iconName: 'arrow-up',
+                                iconColor: COLORS.TRANSACTION.CREDIT,
+                            },
+                        ]}
+                        textStyle={getTextStyle(currentPeriod)}
+                        iconStyle={getIconStyle(currentPeriod)}
+                        isExpanded={isDropdownOpen}
+                    />
+                )}
             </View>
         </View>
     );
@@ -121,17 +180,26 @@ const getIconStyle = (period: string) => {
 };
 
 const styles = StyleSheet.create({
+    cardSpacing: {
+        marginBottom: 12,
+    },
+    chartsButton: {
+        backgroundColor: COLORS.BACKGROUND.MAIN,
+        padding: 8,
+        borderRadius: 8,
+        marginLeft: 8,
+    },
     statisticsContainer: {
         backgroundColor: COLORS.BACKGROUND.CARD,
-        // borderRadius: 16,
+        borderRadius: 16,
         padding: 18,
         marginBottom: 12,
-        // shadowColor: '#000',
-        // shadowOffset: { width: 0, height: 4 },
-        // shadowOpacity: 0.08,
-        // shadowRadius: 8,
-        // elevation: 3,
-        // width: '100%',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+        elevation: 3,
+        width: '100%',
         borderWidth: 1,
         borderColor: 'rgba(100, 116, 139, 0.1)',
     },

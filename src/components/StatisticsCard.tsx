@@ -17,22 +17,21 @@ export const StatisticsCard: React.FC<StatisticsCardProps> = ({
     values,
     textStyle,
     iconStyle,
-    isExpanded = false,
 }) => (
-    <View style={[styles.cardContainer, isExpanded && styles.expandedCard]}>
+    <View style={[styles.cardContainer]}>
         {/* Only show title if it's different from the selected period in dropdown */}
-        {(title !== 'Today' && title !== 'Week' && title !== 'Month') && (
-            <Text style={[styles.cardTitle, isExpanded && styles.expandedTitle]}>{title}</Text>
-        )}
+        {/* {(title !== 'Today' && title !== 'Week' && title !== 'Month') && ( */}
+            <Text style={[styles.cardTitle]}>{title}</Text>
+        {/* )} */}
         <View style={styles.cardValues}>
             {values.map((item, index) => (
                 <View style={styles.valueRow} key={index}>
-                    <Text style={[textStyle, styles.amount, isExpanded && styles.expandedAmount]}>
+                    <Text style={[textStyle, styles.amount]}>
                         {item.amount}
                     </Text>
                     <Icon
                         name={item.iconName}
-                        size={isExpanded ? 28 : 22}
+                        size={22}
                         color={item.iconColor}
                         style={iconStyle}
                         accessibilityLabel={item.iconName}
@@ -45,25 +44,10 @@ export const StatisticsCard: React.FC<StatisticsCardProps> = ({
 
 const styles = StyleSheet.create({
     cardContainer: {
-        // backgroundColor: COLORS.BACKGROUND.CARD,
-        // borderRadius: 16,
-        // padding: 18,
-        // marginBottom: 12,
-        // shadowColor: '#000',
-        // shadowOffset: { width: 0, height: 4 },
-        // shadowOpacity: 0.08,
-        // shadowRadius: 8,
-        // elevation: 3,
-        // width: '100%',
-        // borderWidth: 1,
-        // borderColor: 'rgba(100, 116, 139, 0.1)',
+        width: '100%',
     },
     expandedCard: {
-        padding: 20,
-        shadowOpacity: 0.12,
-        shadowRadius: 12,
-        elevation: 4,
-        transform: [{ scale: 1.02 }],
+        // Remove transform and other expanding properties
     },
     cardTitle: {
         color: COLORS.TEXT.SECONDARY,
