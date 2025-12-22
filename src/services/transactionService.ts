@@ -122,9 +122,7 @@ export class TransactionService {
     }
 
     const messages = await this.fetchSMSMessages();
-    console.log('Fetched SMS Messages:', messages);
     const transactions = this.parseTransactions(messages);
-    console.log('Parsed Transactions:', transactions);
     return transactions;
   }
 }
