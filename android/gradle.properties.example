@@ -1,0 +1,5 @@
+# Example local gradle properties for storing keystore passwords (DO NOT COMMIT)
+# Copy the contents to %USERPROFILE%/.gradle/gradle.properties (Windows) or ~/.gradle/gradle.properties (macOS/Linux)
+
+# MYAPP_UPLOAD_STORE_PASSWORD=your_store_password_here
+# MYAPP_UPLOAD_KEY_PASSWORD=your_key_password_here

@@ -26,13 +26,12 @@ export const HEADER_IMAGES = {
     'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/TYAQi62tlU/n2zjfmr2_expires_30_days.png',
   PROFILE_ICON:
     'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/TYAQi62tlU/nqppen4i_expires_30_days.png',
-  LOGO: 'https://storage.googleapis.com/tagjs-prod.appspot.com/v1/TYAQi62tlU/k6mxlwug_expires_30_days.png',
 } as const;
 
 export const COLORS = {
   GRADIENT: {
-    START: '#b6b6ff',
-    END: '#e1affc',
+    START: '#8C8CFF',
+    END: '#D89DFF',
   },
   TRANSACTION: {
     DEBIT: '#e53935',

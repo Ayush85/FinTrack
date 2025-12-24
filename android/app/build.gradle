@@ -77,13 +77,19 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.fintrack"
+    namespace "com.infoharness.fintrack"
     defaultConfig {
-        applicationId "com.fintrack"
+        applicationId "com.infoharness.fintrack"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // Bumped for Play release
+        versionCode 2
+        versionName "1.0.1"
+        // Generate native debug symbols for Play Console (native .so symbol files)
+        // This produces a zip at: app/build/outputs/native-debug-symbols/release/native-debug-symbols.zip
+        ndk {
+            debugSymbolLevel 'FULL'
+        }
     }
     signingConfigs {
         debug {
@@ -94,10 +100,30 @@ android {
         }
         release {
             if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
-                storeFile file(MYAPP_UPLOAD_STORE_FILE)
-                storePassword MYAPP_UPLOAD_STORE_PASSWORD
-                keyAlias MYAPP_UPLOAD_KEY_ALIAS
-                keyPassword MYAPP_UPLOAD_KEY_PASSWORD
+                def storeFilePath = MYAPP_UPLOAD_STORE_FILE
+                def resolveStoreFile = { String p ->
+                    def f1 = file(p)
+                    if (f1.exists()) return f1
+                    def f2 = rootProject.file(p)
+                    if (f2.exists()) return f2
+                    def f3 = new File(rootProject.projectDir, p)
+                    if (f3.exists()) return f3
+                    return rootProject.file(p)
+                }
+
+                storeFile resolveStoreFile(storeFilePath)
+
+                def storePasswordProp = project.hasProperty('MYAPP_UPLOAD_STORE_PASSWORD') ? MYAPP_UPLOAD_STORE_PASSWORD : System.getenv('MYAPP_UPLOAD_STORE_PASSWORD')
+                def keyPasswordProp = project.hasProperty('MYAPP_UPLOAD_KEY_PASSWORD') ? MYAPP_UPLOAD_KEY_PASSWORD : System.getenv('MYAPP_UPLOAD_KEY_PASSWORD')
+                if (storePasswordProp) {
+                    storePassword storePasswordProp
+                }
+                if (project.hasProperty('MYAPP_UPLOAD_KEY_ALIAS')) {
+                    keyAlias MYAPP_UPLOAD_KEY_ALIAS
+                }
+                if (keyPasswordProp) {
+                    keyPassword keyPasswordProp
+                }
             }
         }
     }

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import { HEADER_IMAGES, COLORS } from '../constants';
+import Logo from './ui/Logo';
 
 export const Header: React.FC = () => (
     <View style={styles.headerContainer}>
@@ -19,11 +20,7 @@ export const Header: React.FC = () => (
                 style={styles.headerImage}
             />
         </View>
-        <Image
-            source={{ uri: HEADER_IMAGES.LOGO }}
-            resizeMode="stretch"
-            style={styles.headerLogo}
-        />
+        <Logo size={52} />
     </View>
 );
 
@@ -63,9 +60,5 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         width: 20,
         height: 20,
-    },
-    headerLogo: {
-        width: 48,
-        height: 48,
     },
 });
